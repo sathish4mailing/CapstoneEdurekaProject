@@ -1,0 +1,28 @@
+---
+- hosts: master
+  become: true
+  become_user: root
+  roles:
+  - sonarqube
+  - jenkins
+  - nagios
+
+- hosts: server
+  become: true
+  become_user: root
+  roles:
+  - gradle
+
+- hosts: all
+  become: true
+  become_user: root
+  roles:
+  - git
+  - docker
+  tasks:
+    - name: Adding Jenkins User
+      lineinfile:
+        path: "/etc/sudoers"
+        regexp: "^includedir"
+        insertafter: "^#includedir"
+        line: "#jenkins  ALL=(ALL) NOPASSWD: ALL"

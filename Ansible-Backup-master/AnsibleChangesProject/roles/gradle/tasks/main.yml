@@ -1,0 +1,40 @@
+- name: create /opt/gradle directory
+  file:
+    path: /opt/gradle
+    state: directory
+    mode: 0755
+
+- name: Unarchive a file that needs to be downloaded
+  unarchive:
+    src: https://services.gradle.org/distributions/gradle-6.3-bin.zip
+    dest: /opt/gradle
+    remote_src: yes
+
+- name: Copy Gradle from local to remote
+  copy:
+    src: gradle.sh
+    dest: /etc/profile.d
+    mode: 0777
+
+- name: Source file for gradle
+  command: sh /etc/profile.d/gradle.sh
+
+#- name: "Download"
+#  get_url:
+#    url: "{{ gradle_download_url }}"
+#    dest: "{{ gradle_download }}"
+#    checksum: "{{ gradle_checksum }}"
+
+#- name: "Extract Gradle {{ gradle_version }}"
+#  unarchive:
+#    src: "{{ gradle_download }}"
+#    dest: "{{ gradle_base_dir }}"
+#    remote_src: True
+
+#- name: "Add gradle symlink to path"
+#  file:
+#    src: "{{ gradle_base_dir }}/{{ gradle_extract_dir }}/bin/gradle"
+#    dest: "{{ gradle_link }}"
+#    owner: root
+#    group: root
+#    state: link

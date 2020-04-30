@@ -1,0 +1,114 @@
+- name: Ensure download directory is present
+  file: path=/opt state=directory
+
+
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: install apache
+  apt: pkg={{ item }} state=present
+  with_items:
+   - apache2
+   - unzip
+   - php
+   - libgd-dev
+   - libmcrypt-dev
+   - libssl-dev
+   - libnet-snmp-perl
+   - libapache2-mod-php7.0
+
+- name: Install Nagios prerequisites for Ubuntu
+  apt: pkg={{ item }} state=present
+  with_items:
+   - build-essential
+   - python-passlib
+   - autoconf
+   - gcc
+   - make
+   - libc6
+   - wget
+   - libgd2-xpm-dev
+
+
+- name: Create nagcmd group
+  group: name=nagcmd state=present
+
+- name: Create nagios user
+  user: name=nagios state=present groups=nagios
+
+#- name: Add apache user to nagcmd group
+#  user: name={{ apache_user }} state=present groups=nagios
+
+- name: Download and archive
+  unarchive:
+    src: https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-4.4.2/nagios-4.4.2.tar.gz
+    dest: /opt
+    remote_src: yes
+
+- name: ./configure
+  shell: cd /opt/nagios-4.4.2 && ./configure --with-command-group=nagcmd -with-httpd_conf=/etc/apache2/sites-enabled --with-nagios-user=nagios creates=/opt/nagios-4.4.2/Makefile
+
+- name: Make all
+  shell: cd /opt/nagios-4.4.2 && make all creates=/opt/nagios-4.4.2/base/nagios
+
+
+- name: Make install
+  shell: cd /opt/nagios-4.4.2 && make install creates=/usr/local/nagios/bin/nagios
+
+- name: Make install-config
+  shell: cd /opt/nagios-4.4.2 && make install-config creates=/usr/local/nagios/etc/nagios.cfg
+
+- name: Make install-commandmode
+  shell: cd /opt/nagios-4.4.2 && make install-commandmode creates=/usr/local/nagios/var/rw
+
+- name: Make install-devel
+  shell: cd /opt/nagios-4.4.2 && make install-devel creates=/usr/local/nagios/include/nagios/nagios.h
+
+- name: Make install-webconf
+  shell: cd /opt/nagios-4.4.2 && make install-webconf creates=/etc/apache2/sites-enabled/nagios.conf
+
+- name: Start sonar service
+  service:
+    name: apache2
+    state: restarted
+
+- name: Make install-init
+  shell: cd /opt/nagios-4.4.2 && make install-init creates=/etc/init.d/nagios
+
+- name: Add Config Files in Object
+  copy:
+    src: localhost.cfg
+    dest: /usr/local/nagios/etc/objects
+    owner: nagios
+    mode: 0777
+
+- name: Add Updated commands config file
+  copy:
+    src: commands.cfg
+    dest: /usr/local/nagios/etc/objects
+    owner: nagios
+    mode: 0777
+
+- name: Add Slave Conig file
+  copy:
+    src: slave.cfg
+    dest: /usr/local/nagios/etc/objects
+    owner: nagios
+    mode: 0777
+
+- name: Adding Required Plugins for Nagios
+  copy:
+    src: /etc/ansible/roles/nagios/files/plugins/
+    dest: /usr/local/nagios/libexec
+    owner: nagios
+    mode: 0777
+
+- name: Adding Slave details in Nagios config
+  lineinfile:
+    path: "/usr/local/nagios/etc/nagios.cfg"
+    regexp: "^cfg_file=/usr/local/nagios/etc/objects/localhost.cfg"
+    insertafter: "^cfg_file=/usr/local/nagios/etc/objects/localhost.cfg"
+    line: "cfg_file=/usr/local/nagios/etc/objects/slave.cfg"
+
+- name: Ensure Nagios is started
+  service: name=nagios state=started enabled=yes
