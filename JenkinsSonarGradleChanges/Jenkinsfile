@@ -20,7 +20,7 @@ pipeline {
               script{
                   def sonar = tool 'sonarscanner';
                   withSonarQubeEnv('Sonarqube') {
-                  sh "${sonar}/bin/sonar-scanner"
+                  sh "${sonar}/bin/sonar-scanner -Dsonar.sources=JenkinsSonarGradleChanges/."
                   } 
               }
           }
