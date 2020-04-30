@@ -17,10 +17,11 @@ pipeline {
       
       stage('Quality Check'){
           steps{
+              dir("JenkinsSonarGradleChanges") { }
               script{
                   def sonar = tool 'sonarscanner';
                   withSonarQubeEnv('Sonarqube') {
-                  sh "${sonar}/bin/sonar-scanner -Dsonar.sources=JenkinsSonarGradleChanges/."
+                  sh "${sonar}/bin/sonar-scanner"
                   } 
               }
           }
