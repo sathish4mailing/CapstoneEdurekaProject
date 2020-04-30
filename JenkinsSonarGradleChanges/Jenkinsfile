@@ -5,13 +5,13 @@ pipeline {
      stage('SCM'){
       steps{
        echo "checking out the repo"
-       git 'https://github.com/AbdulItsMe/superserve_webapp.git'
+       git 'https://github.com/sathish4mailing/CapstoneEdurekaProject.git'
       }
      }
      
      stage('Build') {
       steps{
-         sh "./gradlew build"
+         sh "./JenkinsSonarGradleChanges/gradlew build"
          }
       }
       
@@ -29,7 +29,7 @@ pipeline {
      
      stage('Unit Test') {
       steps{
-         sh "./gradlew test"
+         sh "./JenkinsSonarGradleChanges/gradlew test"
          }
      }
      
@@ -50,9 +50,9 @@ pipeline {
      stage('UAT Test')
      {
       steps{
-         sh "sudo chmod +x geckodriver"
-         sh "sudo chmod +x seleniumtest.jar"
-         sh "java -jar seleniumtest.jar"
+         sh "sudo chmod +x JenkinsSonarGradleChanges/geckodriver"
+         sh "sudo chmod +x JenkinsSonarGradleChanges/seleniumtest.jar"
+         sh "java -jar JenkinsSonarGradleChanges/seleniumtest.jar"
          }
      }
      
@@ -66,9 +66,9 @@ pipeline {
      stage('Docker push'){
      
        steps{
-         sh "docker login -u abdulitsme -p $paswd"
-         sh "docker tag superserve abdulitsme/superserve:v2"
-         sh "docker push abdulitsme/superserve:v2"
+         sh "docker login -u sathish4mailing -p $paswd"
+         sh "docker tag superserve sathish4mailing/superserve:v1"
+         sh "docker push sathish4mailing/superserve:v1"
          }
       }
      stage('Cleanup')
